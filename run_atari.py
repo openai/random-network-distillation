@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 import functools
 import os
-import os.path as osp
-import shutil
 
 from baselines import logger
 from mpi4py import MPI
 import mpi_util
-import serialization, mpi_util, tf_util
+import tf_util
 from cmd_util import make_atari_env, arg_parser
 from policies.cnn_gru_policy_dynamics import CnnGruPolicy
 from policies.cnn_policy_param_matched import CnnPolicy
