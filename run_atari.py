@@ -35,9 +35,6 @@ def train(*, env_id, num_env, hps, num_timesteps, seed):
     ob_space = venv.observation_space
     ac_space = venv.action_space
     gamma = hps.pop('gamma')
-    adapt_lr_tuple = (hps.pop('adapt_lr_mean'), hps.pop('adapt_lr_max'))
-    if not hps.pop('adapt_lr'):
-        adapt_lr_tuple = None
     policy = {'rnn': CnnGruPolicy,
               'cnn': CnnPolicy}[hps.pop('policy')]
     agent = PpoAgent(
@@ -66,7 +63,6 @@ def train(*, env_id, num_env, hps, num_timesteps, seed):
         use_news=hps.pop("use_news"),
         comm=MPI.COMM_WORLD if MPI.COMM_WORLD.Get_size() > 1 else None,
         update_ob_stats_every_step=hps.pop('update_ob_stats_every_step'),
-        adaptlr=adapt_lr_tuple,
         int_coeff=hps.pop('int_coeff'),
         ext_coeff=hps.pop('ext_coeff'),
     )
@@ -107,9 +103,6 @@ def main():
     parser.add_argument('--update_ob_stats_independently_per_gpu', type=int, default=0)
     parser.add_argument('--update_ob_stats_from_random_agent', type=int, default=1)
     parser.add_argument('--proportion_of_exp_used_for_predictor_update', type=float, default=1.)
-    parser.add_argument('--adapt_lr', type=int, default=0)
-    parser.add_argument('--adapt_lr_mean', type=float, default=0.1)
-    parser.add_argument('--adapt_lr_max', type=float, default=10.)
     parser.add_argument('--tag', type=str, default='')
     parser.add_argument('--policy', type=str, default='rnn', choices=['cnn', 'rnn'])
     parser.add_argument('--int_coeff', type=float, default=1.)
@@ -144,9 +137,6 @@ def main():
         update_ob_stats_independently_per_gpu=args.update_ob_stats_independently_per_gpu,
         update_ob_stats_from_random_agent=args.update_ob_stats_from_random_agent,
         proportion_of_exp_used_for_predictor_update=args.proportion_of_exp_used_for_predictor_update,
-        adapt_lr=args.adapt_lr,
-        adapt_lr_mean=args.adapt_lr_mean,
-        adapt_lr_max=args.adapt_lr_max,
         policy=args.policy,
         int_coeff=args.int_coeff,
         ext_coeff=args.ext_coeff,

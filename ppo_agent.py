@@ -9,7 +9,6 @@ from mpi4py import MPI
 from baselines import logger
 import tf_util
 from recorder import Recorder
-from serialization import get_ctor_kwargs
 from utils import explained_variance
 from console_util import fmt_row
 from mpi_util import MpiAdamOptimizer, RunningMeanStd, sync_from_root
@@ -102,7 +101,7 @@ class PpoAgent(object):
                  cliprange=0.2,
                  max_grad_norm=1.0,
                  vf_coef=1.0,
-                 lr=30e-5, adaptlr=(0.04, 16.0),
+                 lr=30e-5,
                  adam_hps=None,
                  testing=False,
                  comm=None, comm_train=None, use_news=False,
@@ -115,9 +114,6 @@ class PpoAgent(object):
         self.int_coeff = int_coeff
         self.use_news = use_news
         self.update_ob_stats_every_step = update_ob_stats_every_step
-        self._ctor_kwargs = get_ctor_kwargs(locals())
-        self._ctor_kwargs['comm'] = None
-        self._ctor_kwargs['comm_train'] = None
         self.abs_scope = (tf.get_variable_scope().name + '/' + scope).lstrip('/')
         self.testing = testing
         self.comm_log = MPI.COMM_SELF
@@ -542,22 +538,6 @@ class PpoAgent(object):
 
         return {'update' : update_info}
 
-    def to_dict(self):
-        return {
-            'ctor' : type(self),
-            'ctor_kwargs' : self._ctor_kwargs,
-            'var_values' : self.var_manager.get_var_values(),
-        }
-
-    @classmethod
-    def from_dict(cls, d, new_scope):
-        assert new_scope is None, "TODO: change scope to put variables into"
-        obj = cls(**d['ctor_kwargs'])
-        loadedvarvalues = d['var_values']
-        curvarvalues = obj.var_manager.get_var_values()
-        assert curvarvalues.keys() == loadedvarvalues.keys(), "Mismatched keys:\n" + "\n".join(curvarvalues.keys()) + "\n != \n" + "\n".join(loadedvarvalues.keys())
-        obj.var_manager.set_var_values(loadedvarvalues)
-        return obj
 
 class RewardForwardFilter(object):
     def __init__(self, gamma):
