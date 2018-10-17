@@ -383,8 +383,9 @@ class PpoAgent(object):
             else:
                 lossdict = {}
             #Synchronize the lossdict across mpi processes, otherwise weights may be rolled back on one process but not another.
+            _maxkl = lossdict.pop('maxkl')
             lossdict = dict_gather(self.comm_train, lossdict, op='mean')
-            maxmaxkl = dict_gather(self.comm_train, {"maxkl":lossdict["maxkl"]}, op='max')
+            maxmaxkl = dict_gather(self.comm_train, {"maxkl":_maxkl}, op='max')
             lossdict["maxkl"] = maxmaxkl["maxkl"]
             if verbose and self.is_log_leader:
                 logger.info("%i:%03i %s" % (epoch, start, fmt_row(13, [lossdict[n] for n in self.loss_names])))
