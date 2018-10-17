@@ -1,6 +1,7 @@
 import numpy as np
 import tensorflow as tf
 import random
+from mpi_util import mpi_moments
 
 
 def fc(x, scope, nh, *, init_scale=1.0, init_bias=0.0):
@@ -82,7 +83,7 @@ def set_global_seeds(i):
     random.seed(i)
 
 
-def explained_variance(ypred,y):
+def explained_variance_non_mpi(ypred,y):
     """
     Computes fraction of variance that ypred explains about y.
     Returns 1 - Var[y-ypred] / Var[y]
@@ -96,3 +97,22 @@ def explained_variance(ypred,y):
     assert y.ndim == 1 and ypred.ndim == 1
     vary = np.var(y)
     return np.nan if vary==0 else 1 - np.var(y-ypred)/vary
+
+def mpi_var(x):
+    return mpi_moments(x)[1]**2
+
+def explained_variance(ypred,y):
+    """
+    Computes fraction of variance that ypred explains about y.
+    Returns 1 - Var[y-ypred] / Var[y]
+
+    interpretation:
+        ev=0  =>  might as well have predicted zero
+        ev=1  =>  perfect prediction
+        ev<0  =>  worse than just predicting zero
+
+    """
+    assert y.ndim == 1 and ypred.ndim == 1
+    vary = mpi_var(y)
+    return np.nan if vary==0 else 1 - mpi_var(y-ypred)/vary
+
