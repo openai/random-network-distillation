@@ -1,3 +1,5 @@
+**Status:** Archive (code is provided as-is, no updates expected)
+
 ## [Exploration by Random Network Distillation](https://arxiv.org/abs/1810.12894) ##
 
 
